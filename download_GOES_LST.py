@@ -1,11 +1,15 @@
 """
 Download GOES LST, using the id 
+download_GOES_LST(id, year=2009, source='GENHEM')
+Need to order data first
 """
 import ftplib
 import os
 
-def download_GOES_LST(id, year=2009):
+def download_GOES_LST(id, year=2009, source='GENHEM'):
    # id = '2584218284'
+    print('download for Year=%d, source=%s'%(year, source))
+    os.chdir('data/' + source)
     currdir=os.getcwd()
     
     # Create year folder
@@ -27,3 +31,4 @@ def download_GOES_LST(id, year=2009):
 
     print('Download task complete, close FTP connection')
     ftp.quit()  
+    os.chdir('../../../')
