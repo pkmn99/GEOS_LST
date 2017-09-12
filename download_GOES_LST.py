@@ -35,25 +35,35 @@ def download_GOES_LST(id, year=2009, source='GENHEM',test=False):
         print ('%s Error'%id)
     os.chdir('../../../')
 
+
 import urllib2
 import shutil
 import pandas as pd 
+"""
+Use urllib2 to download files. Need to copy file name from the email to a txt that is named 
+after the task number. 
+"""
 def get_file(url):
     req = urllib2.urlopen(url)
-    file = s.split('/')[-1]
+    file = url.split('/')[-1]
     with open(file, 'wb') as fp:
         shutil.copyfileobj(req, fp)
 
-def get_file_urllib2(id, year=2009, source='GENHEM')
+def get_file_urllib2(id, year=2009, source='GENHEM'):
     ftp_name = 'ftp://ftp.class.ncdc.noaa.gov/'
-   # id = '2585819234'
     fn = pd.read_csv(id + '.txt', sep=' ', header=None)
+
+    os.chdir('data/' + source)
+    currdir=os.getcwd()
 
     if not os.path.exists(str(year)):
         os.makedirs(str(year))
     os.chdir(str(year))
     
     for i in range(fn.shape[0]):
-        s = ftp_name + id + fn[1][i]
+        s = ftp_name + id + '/' + fn[1][i]
         print('dowloading %s'%s)
         get_file(s)
+    print('Download task complete')
+
+    os.chdir('../../../')
