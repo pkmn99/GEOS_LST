@@ -30,4 +30,58 @@ def check_data_boundary():
                            ds.south_lat.values, ds.dims['nlon_grid']
     
     df.to_csv('result/gsip_boundary.csv')
+
+# Define US lat/lon boundary
+def US_latlon_boundary():
+    lat_north = 50
+    lat_south = 20
+    lon_west = -125
+    lon_east = -70
+    res = 0.125
+    lat = np.arange(lat_north-res/2, lat_south-res/2-0.001, -res)
+    lon = np.arange(lon_west+res/2, lon_east + res/2+0.001, res)
+    return lat, lon
+
+"""
+Convert the GSIP LST data to 2d map
+array = convert_to_map(ds)
+""" 
+def convert_to_map(ds):
+    c = (ds['lon_cell']>=lon[0]) & (ds['lon_cell']<=lon[-1]) \
+        &(ds['lat_cell']>=lat[-1]) & (ds['lat_cell']<=lat[0])
     
+    # Make a dataframe to save points within the US lat/lon boundary
+    df_data = pd.DataFrame({'lat': ds['lat_cell'].values[c.values],
+                            'lon': ds['lon_cell'].values[c.values],
+                            'lst': ds['lst'].values[c.values]
+                             })
+    # Link it with the references US data frame
+    df_data = df_data.merge(US_table, on=['lat','lon'])
+        
+    map_array = np.zeros([len(lat), len(lon)],dtype=np.int8).flatten() + np.int8(-128)
+    map_array[df_data['ind_1d'].values] = df_data['lst'].values
+    
+    return map_array.reshape(len(lat), len(lon))    
+
+
+if __name == '__main__':
+    lat, lon = US_latlon_boundary()
+    US_table = pd.read_csv('result/US_row_col_0125deg.csv')
+    # Create a dataframe to save time index
+    date = pd.date_range(start='2009/04/01/00:45',end='20170101', freq='h')
+    df_time=pd.DataFrame(range(len(date)),index=date)
+    
+    year = 2012
+    month = 1
+    time_month = df_time['%d/%02d'%(year,month)]
+    lst_array = np.zeros([time_month.shape[0],len(lat),len(lon), dtype=np.int8]) + np.int8(-128)
+    
+    for i,t in enumerate(time_month.index):
+        ds = load_hourly_data_for_day(t.year, t.dayofyear, t.hour=8, head_txt='gsipL3_g13_GENHEM_')
+        if ds:
+            array[i,:,:] = convert_to_map(ds)
+    
+    foo = xr.DataArray(lst_array, coords=[time_month.index, lat, lon], dims=['time','latitude','longitude'], 
+                       attrs=ds.lst.attrs, name='lst')
+    foo.to_netcdf('result/montly_test.nc')
+
