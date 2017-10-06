@@ -38,8 +38,8 @@ def US_latlon_boundary():
     lon_west = -125
     lon_east = -70
     res = 0.125
-    lat = np.arange(lat_north-res/2, lat_south-res/2-0.001, -res)
-    lon = np.arange(lon_west+res/2, lon_east + res/2+0.001, res)
+    lat = np.arange(lat_north-res/2, lat_south-res/2, -res)
+    lon = np.arange(lon_west+res/2, lon_east + res/2, res)
     return lat, lon
 
 """
