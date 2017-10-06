@@ -68,8 +68,6 @@ Save GSIP hourly data to netcdf, one month for one file
 Usage: save_to_netcdf_monthly(year, month)
 """
 def save_to_netcdf_monthly(year, month):
-    lat, lon = US_latlon_boundary()
-    US_table = pd.read_csv('result/US_row_col_0125deg.csv')
     # Create a dataframe to save time index
     date = pd.date_range(start='2009/04/01/00:45',end='20170101', freq='h')
     df_time=pd.DataFrame(range(len(date)),index=date)
@@ -81,14 +79,17 @@ def save_to_netcdf_monthly(year, month):
         ds = load_hourly_data_for_day(t.year, t.dayofyear, h=t.hour, head_txt='gsipL3_g13_GENHEM_')
         if ds:
             lst_array[i,:,:] = convert_to_map(ds)
-    
+    # Load a sample data to get attribute 
+    ds_sample = load_hourly_data_for_day(2012, 1, h=0, head_txt='gsipL3_g13_GENHEM_')
+
     foo = xr.DataArray(lst_array, coords=[time_month.index, lat, lon], dims=['time','latitude','longitude'], 
-                       attrs=ds.lst.attrs, name='lst')
+                       attrs=ds_sample.lst.attrs, name='lst')
     foo.to_netcdf('result/gsipL3_g13_GENHEM_%d_%02d.nc'%(year,month))
     print('Netcdf file gsipL3_g13_GENHEM_%d_%02d.nc saved'%(year,month))
 
 if __name__ == '__main__':
+    lat, lon = US_latlon_boundary()
+    US_table = pd.read_csv('result/US_row_col_0125deg.csv')
     year = 2012
-    month = 1
-    for month in range(1, 13):
+    for month in range(9, 13):
         save_to_netcdf_monthly(year, month)
