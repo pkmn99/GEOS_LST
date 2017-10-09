@@ -43,7 +43,7 @@ def save_to_netcdf_monthly(year, month):
         
         d = load_hourly_goes_lst_dat(t.year, t.dayofyear, h=t.hour)
         if d.any():
-            lst_array[i,:,:]
+            lst_array[i,:,:] = d
 
     foo = xr.DataArray(lst_array, coords=[time_month.index, lat, lon],
                        dims=['time','latitude','longitude'],
@@ -66,4 +66,5 @@ if __name__ == "__main__":
 
     year = 2014
 #    t = load_hourly_goes_lst_dat(year,1,h=7)
-    save_to_netcdf_monthly(year, 1)
+    for m in range(2,13):
+        save_to_netcdf_monthly(year, m)
