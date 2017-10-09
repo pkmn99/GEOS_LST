@@ -14,8 +14,8 @@ def US_boundary_table():
     lon_east = -70
     res = 0.125
     
-    lat = np.arange(lat_north-res/2, lat_south-res/2 -0.001, -res)
-    lon = np.arange(lon_west+res/2, lon_east + res/2 + 0.001, res)
+    lat = np.arange(lat_north-res/2, lat_south-res/2, -res)
+    lon = np.arange(lon_west+res/2, lon_east + res/2, res)
     
     lon_mesh, lat_mesh = np.meshgrid(lon, lat)
     
@@ -34,5 +34,5 @@ def US_boundary_table():
     df.to_csv('result/US_row_col_0125deg.csv')
     print('File saved as result/US_row_col_0125deg')
 
-if '__name__'=='__main__':
+if __name__=="__main__":
     US_boundary_table()
