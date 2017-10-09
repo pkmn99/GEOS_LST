@@ -1,8 +1,7 @@
+from __future__ import division
 import numpy as np
 import pandas as pd
 import xarray as xr
-
-from __future__ import division
 def compute_scale_and_offset(min, max, n):
     # stretch/compress data to the available packed range
     scale_factor = (max - min) / (2 ** n - 2) # reserve for missing value
@@ -12,19 +11,23 @@ def compute_scale_and_offset(min, max, n):
 
 
 # fn = 'test_data/LST_2014192_1215.dat'
-def load_hourly_goes_lst_dat(fn):
+def load_hourly_goes_lst_dat(year,day,h=0):
     dir_txt = '../data/GOES_LST_Hain/data/' + str(year) + '/'
     head_txt = 'LST_'
 
     fn = dir_txt + head_txt + str(year)+ '%03d'%day + '_%02d'%h + '15.dat'
+    try:
+        myarray = np.fromfile(fn, dtype=np.float32)
+        myarray = np.flipud(myarray.reshape(1515,1775))
 
-    myarray = np.fromfile(fn, dtype=np.float32)
-    myarray = np.flipud(myarray.reshape(1515,1775))
-
-    # Convert array to int16
-    myarray[myarray==-9999]=nan
-    myarray = floor((myarray - add_offset) / scale_factor)
-    myarray[np.isnan(myarray)] = (2**16)/2 - 1
+        # Convert array to int16
+        myarray[myarray==-9999]=np.nan
+        myarray = np.floor((myarray - add_offset) / scale_factor)
+        myarray[np.isnan(myarray)] = (2**16)/2 - 1
+    except:
+        print('%s is missing'%fn)
+        myarray = np.array([False, False]) 
+        
     return myarray
 
 def save_to_netcdf_monthly(year, month):
@@ -37,11 +40,15 @@ def save_to_netcdf_monthly(year, month):
     
     for i,t in enumerate(time_month.index):
         print('processing %s'%t)
-        try:
-            lst_array[i,:,:] = load_hourly_goes_lst_dat(t.year, t.dayofyear, h=t.hour)
+        
+        d = load_hourly_goes_lst_dat(t.year, t.dayofyear, h=t.hour)
+        if d.any():
+            lst_array[i,:,:]
 
-    foo = xr.DataArray(lst_array, coords=[time_month.index, lat, lon], dims=['time','latitude','longitude'], 
+    foo = xr.DataArray(lst_array, coords=[time_month.index, lat, lon],
+                       dims=['time','latitude','longitude'],
                        attrs=attrs, name='lst')
+
     foo.sel(latitude=slice(50,20),longitude=slice(-125,-70)). \
         to_netcdf('result/LST_%d_%02d.nc'%(year,month))
     print('Netcdf file LST_%d_%02d.nc saved'%(year,month))
@@ -54,8 +61,9 @@ if __name__ == "__main__":
     # Get scale_factor and add_offset
     scale_factor, add_offset = compute_scale_and_offset(240, 340, 16)
 
-    attrs = {'scale_factor': scale_factor, 'add_offset':add_offset, '_FillValue' : int16((2**16)/2 - 1), 
+    attrs = {'scale_factor': scale_factor, 'add_offset':add_offset, '_FillValue': np.int16((2**16)/2 - 1), 
              'long_name': "Mean surface temperature"}    
 
     year = 2014
+#    t = load_hourly_goes_lst_dat(year,1,h=7)
     save_to_netcdf_monthly(year, 1)
