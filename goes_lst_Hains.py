@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 import xarray as xr
 
 from __future__ import division
@@ -11,7 +13,7 @@ def compute_scale_and_offset(min, max, n):
 
 # fn = 'test_data/LST_2014192_1215.dat'
 def load_hourly_goes_lst_dat(fn):
-    dir_txt = 'data/GOES_LST_Hain/data/' + str(year) + '/'
+    dir_txt = '../data/GOES_LST_Hain/data/' + str(year) + '/'
     head_txt = 'LST_'
 
     fn = dir_txt + head_txt + str(year)+ '%03d'%day + '_%02d'%h + '15.dat'
@@ -45,11 +47,15 @@ def save_to_netcdf_monthly(year, month):
     print('Netcdf file LST_%d_%02d.nc saved'%(year,month))
 
 if __name__ == "__main__":
-    attrs = {'scale_factor': scale_factor, 'add_offset':add_offset, '_FillValue' : int16((2**16)/2 - 1), 
-             'long_name': "Mean surface temperature"}    
+    res = 0.04
+    lat = np.arange(0.04*1515 - res/2, -0.02, -res)
+    lon = np.arange(-120+res/2, -120+0.04*1775 + res/2, res)
 
     # Get scale_factor and add_offset
     scale_factor, add_offset = compute_scale_and_offset(240, 340, 16)
+
+    attrs = {'scale_factor': scale_factor, 'add_offset':add_offset, '_FillValue' : int16((2**16)/2 - 1), 
+             'long_name': "Mean surface temperature"}    
 
     year = 2014
     save_to_netcdf_monthly(year, 1)
