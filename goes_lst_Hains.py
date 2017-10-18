@@ -32,7 +32,7 @@ def load_hourly_goes_lst_dat(year,day,h=0):
 
 def save_to_netcdf_monthly(year, month):
     # Create a dataframe to save time index
-    date = pd.date_range(start='2009/04/01/00:45',end='20170101', freq='h')
+    date = pd.date_range(start='2009/04/01/00:15',end='20170101', freq='h')
     df_time=pd.DataFrame(range(len(date)),index=date)
     time_month = df_time['%d/%02d'%(year,month)]
 
@@ -53,7 +53,14 @@ def save_to_netcdf_monthly(year, month):
         to_netcdf('result/LST_%d_%02d.nc'%(year,month))
     print('Netcdf file LST_%d_%02d.nc saved'%(year,month))
 
-if __name__ == "__main__":
+def task_save_monthly_mean(year=2014):
+    for m in range(1, 13):
+        ds = xr.open_dataset('result/LST_%d_%02d.nc'%(year, m))
+        ds.lst.mean(dim='time').to_netcdf('result/LST_%d_%02d_mean.nc'%(year,m))
+        print('LST_%d_%02d_mean.nc saved'%(year,m))
+
+
+def task_save_monthly():
     res = 0.04
     lat = np.arange(0.04*1515 - res/2, -0.02, -res)
     lon = np.arange(-120+res/2, -120+0.04*1775 + res/2, res)
@@ -68,3 +75,6 @@ if __name__ == "__main__":
 #    t = load_hourly_goes_lst_dat(year,1,h=7)
     for m in range(2,13):
         save_to_netcdf_monthly(year, m)
+
+if __name__ == "__main__":
+    task_save_monthly_mean()
