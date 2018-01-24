@@ -76,7 +76,7 @@ def task_save_monthly_mean(year=2014):
 
 
 def main():
-    year = 2010
+    year = 2014
 #    t = load_hourly_goes_lst_dat(year,1,h=7)
     for m in range(1,13):
         save_to_netcdf_monthly(year, m)
